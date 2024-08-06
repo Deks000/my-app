@@ -88,3 +88,8 @@ body {
 .game-info {
   margin-left: 20px;
 }
+
+html{
+  background-color: #282c34;
+  color: #61dafb;
+}

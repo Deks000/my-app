@@ -1,5 +1,3 @@
-import { LinearProgress } from '@mui/material';
-import { dblClick } from '@testing-library/user-event/dist/click';
 import { useState } from 'react';
 
 function Square({ value, onSquareClick }) {
@@ -7,11 +5,12 @@ function Square({ value, onSquareClick }) {
 }
 
 function Board({ xIsNext, squares, onPlay }) {
+  const nextSquares = squares.slice();
+
   function handleClick(i) {
     if (squares[i] || calculateWinner(squares)){
       return;
     }
-    const nextSquares = squares.slice();
     if (xIsNext) {
       nextSquares[i] = "X";
     } else {
@@ -22,11 +21,14 @@ function Board({ xIsNext, squares, onPlay }) {
 
   const winner = calculateWinner(squares);
   let status;
-  if (winner) {
-    status = "Winner: " + winner;
-  } else {
-    status = "Next player: " + (xIsNext ? "X" : "O");
+  if (nextSquares.includes(null) === false){
+    status = "Ничья";
+  } else if (winner) {
+    status = "Затащил: " + winner;
+  } else if (!winner){
+    status = "Следующий: " + (xIsNext ? "X" : "O");
   }
+
   
   return (
     <>
@@ -51,29 +53,38 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [xIsNext, setXIsNext] = useState(true);
   const [history, setHistory] = useState([Array(9).fill(null)]);
-  const currentSquares = history[history.length - 1];
+  const [currentMove, setCurrentMove] = useState(0)
+  // const [currentIndex, setCurrentIndex] = useState(null);
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
 
   function handlePlay(nextSquares) {
-    setHistory([...history, nextSquares]);
-    setXIsNext(!xIsNext);
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
   }
 
-  function jumpTo(nextMove) {
-
+  function jumpTo(nextMove, move) {
+    setCurrentMove(nextMove);
+    // setCurrentIndex(nextMove)
+    console.log({currentMove})
   }
 
   const moves = history.map((squares, move) => {
+    console.log(move)
     let description;
     if (move > 0) {
-      description = 'Go to move #' + move;
+      description = 'Шаг #' + move;
     } else {
-      description = 'Go to game start';
+      description = 'Погнали!!!';
     }
+
     return (
-      <li>
-        <button onClick={() => jumpTo(move)}>{description}</button>
+      <li key={move}>
+        <button style={{
+          color: move === currentMove ? "red" : "black"
+        }} onClick={() => jumpTo(move)}>{description}</button>
       </li>
     );
   });
@@ -81,6 +92,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
+        <div className="game-move">Ты на {currentMove} этапе</div>
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
